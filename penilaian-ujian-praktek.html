@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Piano Student Assessment</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#4f46e5,#7c3aed);
+padding:20px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:20px;
+box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+
+h1{
+text-align:center;
+margin-bottom:20px;
+color:#4f46e5;
+}
+
+.section{
+margin-bottom:25px;
+padding:15px;
+border-radius:15px;
+background:#f7f7f7;
+}
+
+h2{
+margin-bottom:10px;
+color:#333;
+}
+
+label{
+display:block;
+margin-top:10px;
+font-weight:bold;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-top:5px;
+border:1px solid #ccc;
+border-radius:8px;
+}
+
+button{
+width:100%;
+padding:14px;
+border:none;
+background:#4f46e5;
+color:white;
+font-size:18px;
+border-radius:10px;
+cursor:pointer;
+margin-top:20px;
+}
+
+button:hover{
+background:#4338ca;
+}
+
+.result{
+display:none;
+margin-top:20px;
+padding:20px;
+background:#eef2ff;
+border-radius:15px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:15px;
+box-shadow:0 4px 10px rgba(0,0,0,.1);
+}
+
+.progress{
+height:25px;
+background:#ddd;
+border-radius:20px;
+overflow:hidden;
+margin-top:5px;
+margin-bottom:10px;
+}
+
+.bar{
+height:100%;
+line-height:25px;
+text-align:center;
+color:white;
+font-weight:bold;
+}
+
+.intel{
+background:#2563eb;
+}
+
+.agility{
+background:#10b981;
+}
+
+.strength{
+background:#ef4444;
+}
+
+.badge{
+display:inline-block;
+padding:8px 12px;
+margin:5px;
+border-radius:20px;
+background:gold;
+font-weight:bold;
+}
+
+.stat{
+font-size:18px;
+margin:8px 0;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>🎹 Piano Student Assessment</h1>
+
+<label>Nama Siswa</label>
+<input type="text" id="nama">
+
+<div class="section">
+<h2>🧠 Intelligent</h2>
+
+<label>Tentukan nada</label>
+<input type="number" id="not">
+
+<label>Tentukan ketukan</label>
+<input type="number" id="teori">
+
+<label>Menghafal istilah</label>
+<input type="number" id="ritme">
+
+<label>Menguasai teori dasar musik</label>
+<input type="number" id="sight">
+
+</div>
+
+<div class="section">
+<h2>⚡ Agility</h2>
+
+<label>Finger Exercise</label>
+<input type="number" id="finger">
+
+<label>Scale</label>
+<input type="number" id="scale">
+
+<label>Arpeggio</label>
+<input type="number" id="arpeggio">
+
+<label>Ketepatan mengikuti tempo</label>
+<input type="number" id="speed">
+
+</div>
+
+<div class="section">
+<h2>💪 Strength</h2>
+
+<label>Disiplin Latihan</label>
+<input type="number" id="discipline">
+
+<label>Konsistensi</label>
+<input type="number" id="consistency">
+
+<label>Ekspresi Musik</label>
+<input type="number" id="expression">
+
+<label>Ketahanan Bermain</label>
+<input type="number" id="endurance">
+
+</div>
+
+<button onclick="calculate()">Generate Status</button>
+
+<div id="result" class="result">
+
+<div class="card">
+
+<h2 id="studentName"></h2>
+
+<div class="stat" id="level"></div>
+<div class="stat" id="rank"></div>
+<div class="stat" id="grade"></div>
+<div class="stat" id="status"></div>
+<div class="stat" id="power"></div>
+
+<h3>Intelligent</h3>
+<div class="progress">
+<div class="bar intel" id="intelBar"></div>
+</div>
+
+<h3>Agility</h3>
+<div class="progress">
+<div class="bar agility" id="agilityBar"></div>
+</div>
+
+<h3>Strength</h3>
+<div class="progress">
+<div class="bar strength" id="strengthBar"></div>
+</div>
+
+<h3>🏆 Achievement</h3>
+<div id="achievements"></div>
+
+<button onclick="downloadPDF()">Download PDF</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let report={};
+
+function avg(...n){
+return Math.round(
+n.reduce((a,b)=>a+b,0)/n.length
+);
+}
+
+function grade(score){
+
+if(score>=95) return "S+";
+if(score>=90) return "S";
+if(score>=85) return "A+";
+if(score>=80) return "A";
+if(score>=75) return "B+";
+if(score>=70) return "B";
+if(score>=65) return "C+";
+if(score>=60) return "C";
+return "D";
+
+}
+
+function calculate(){
+
+let nama=document.getElementById("nama").value;
+
+let not=+document.getElementById("not").value||0;
+let teori=+document.getElementById("teori").value||0;
+let ritme=+document.getElementById("ritme").value||0;
+let sight=+document.getElementById("sight").value||0;
+
+let finger=+document.getElementById("finger").value||0;
+let scale=+document.getElementById("scale").value||0;
+let arpeggio=+document.getElementById("arpeggio").value||0;
+let speed=+document.getElementById("speed").value||0;
+
+let discipline=+document.getElementById("discipline").value||0;
+let consistency=+document.getElementById("consistency").value||0;
+let expression=+document.getElementById("expression").value||0;
+let endurance=+document.getElementById("endurance").value||0;
+
+let intelligent=avg(not,teori,ritme,sight);
+let agility=avg(finger,scale,arpeggio,speed);
+let strength=avg(discipline,consistency,expression,endurance);
+
+let total=Math.round(
+(intelligent+agility+strength)/3
+);
+
+let level=Math.floor(total/15)+1;
+if(level>7) level=7;
+
+let rank="Beginner";
+
+if(total>=90) rank="Piano Master";
+else if(total>=80) rank="Advanced Performer";
+else if(total>=70) rank="Rising Performer";
+else if(total>=60) rank="Skilled Student";
+
+let status="Beginner Journey";
+
+if(total>=90) status="Legendary Pianist";
+else if(total>=80) status="Outstanding Musician";
+else if(total>=70) status="Excellent Progress";
+else if(total>=60) status="Good Improvement";
+else if(total>=50) status="Keep Practicing";
+
+let achievement=[];
+
+if(not>=90)
+achievement.push("🏅 Note Reader Master");
+
+if(teori>=90)
+achievement.push("🏅 Theory Expert");
+
+if(ritme>=90)
+achievement.push("🏅 Rhythm King");
+
+if(speed>=90)
+achievement.push("🏅 Finger Speed Hero");
+
+if(discipline>=95)
+achievement.push("🏅 Practice Champion");
+
+if(intelligent>=85 && agility>=85 && strength>=85)
+achievement.push("🏅 Piano Warrior");
+
+if(intelligent>=95 && agility>=95 && strength>=95)
+achievement.push("🏅 Grand Master Pianist");
+
+document.getElementById("result").style.display="block";
+
+document.getElementById("studentName").innerHTML=
+"🎹 "+nama;
+
+document.getElementById("level").innerHTML=
+"Level : "+level;
+
+document.getElementById("rank").innerHTML=
+"Rank : "+rank;
+
+document.getElementById("grade").innerHTML=
+"Grade : "+grade(total);
+
+document.getElementById("status").innerHTML=
+"Status : "+status;
+
+document.getElementById("power").innerHTML=
+"Power Score : "+
+(intelligent+agility+strength)+"/300";
+
+setBar("intelBar",intelligent);
+setBar("agilityBar",agility);
+setBar("strengthBar",strength);
+
+document.getElementById("achievements").innerHTML=
+achievement.map(a =>
+'<span class="badge">'+a+'</span>'
+).join("");
+
+report={
+nama,
+level,
+rank,
+grade:grade(total),
+status,
+intelligent,
+agility,
+strength,
+achievement
+};
+
+}
+
+function setBar(id,val){
+
+let bar=document.getElementById(id);
+
+bar.style.width=val+"%";
+bar.innerHTML=val;
+
+}
+
+function downloadPDF(){
+
+const { jsPDF } = window.jspdf;
+
+let doc=new jsPDF();
+
+doc.setFontSize(20);
+doc.text("PIANO STUDENT REPORT",20,20);
+
+doc.setFontSize(12);
+
+doc.text("Name : "+report.nama,20,40);
+doc.text("Level : "+report.level,20,50);
+doc.text("Rank : "+report.rank,20,60);
+doc.text("Grade : "+report.grade,20,70);
+doc.text("Status : "+report.status,20,80);
+
+doc.text("Intelligent : "+report.intelligent,20,100);
+doc.text("Agility : "+report.agility,20,110);
+doc.text("Strength : "+report.strength,20,120);
+
+doc.text("Achievements :", 20, 140);
+
+let y=150;
+
+if(report.achievement.length===0){
+    doc.text("No Achievement Yet", 25, y);
+} else {
+    report.echievement.forEach(item=>{doc.text("- "+item,25,y);});
+}
+
+doc.save(report.nama+"_Piano_Report.pdf");
+
+}
+
+</script>
+
+</body>
+</html>
